@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRIDE - Welcome</title>
+
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="Community-based ride-sharing app for drivers and passengers">
+    <meta name="theme-color" content="#0d0d0d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="VRIDE">
+    <link rel="apple-touch-icon" href="/icon-512.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/icon-512.png">
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="landing-body">
+    <div class="landing-container">
+        <h1 class="app-title">VRIDE</h1>
+        <p class="app-tagline">Let's get moving.</p>
+
+        <div class="action-buttons">
+            <button id="driver-btn" onclick="selectRole('driver')" class="btn btn-landing">
+                Continue as Driver <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button onclick="selectRole('passenger')" class="btn btn-landing btn-outline">
+                Continue as Passenger <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Entry Flow Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            // Role Selection Restriction
+            const profile = JSON.parse(localStorage.getItem('vride_profile') || '{}');
+            const driverBtn = document.getElementById('driver-btn');
+
+            // If user has a profile and explicitly does NOT own a vehicle, hide driver option
+            if (profile.hasOwnProperty('ownsVehicle') && profile.ownsVehicle === false) {
+                driverBtn.style.display = 'none';
+            }
+
+            // Register service worker for PWA
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('/sw.js')
+                    .then((registration) => {
+                        console.log('Service Worker registered:', registration);
+                        registration.addEventListener('updatefound', () => {
+                            const newWorker = registration.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    window.location.reload();
+                                }
+                            });
+                        });
+                    });
+            }
+        });
+
+        function selectRole(role) {
+            localStorage.setItem('vride_role', role);
+
+            const user = localStorage.getItem('vride_user');
+            const profile = localStorage.getItem('vride_profile');
+
+            if (user && profile) {
+                // Registered users go straight to home
+                window.location.href = 'home.html';
+            } else {
+                // New or unauthenticated users start the login/profile flow
+                window.location.href = 'login.html';
+            }
+        }
+    </script>
+</body>
+
+</html>

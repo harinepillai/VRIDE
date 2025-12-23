@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your Driver - VRIDE</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+
+<body class="selection-body">
+    <div id="selection-map" class="selection-map"></div>
+
+    <div class="selection-header">
+        <a href="home.html" class="back-btn-selection"><i class="fa-solid fa-arrow-left"></i></a>
+        <div class="selection-title-group">
+            <h1>Match Found</h1>
+            <p>Picking the best drivers going your way</p>
+        </div>
+    </div>
+
+    <!-- Drivers Bottom Sheet -->
+    <div class="drivers-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2>Available Drivers</h2>
+            <div class="filter-badge">Best Match <i class="fa-solid fa-star"></i></div>
+        </div>
+
+        <div id="drivers-list" class="drivers-list">
+            <!-- Drivers will be injected here -->
+            <div class="loading-drivers">
+                <div class="spinner"></div>
+                <span>Finding best matches...</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initMap, getAvailableDrivers, sortDrivers, getRoute, createVehicleIcon } from './map-utils.js';
+
+        let map, routeLine;
+        const pickup = JSON.parse(localStorage.getItem('vride_pickup'));
+        const drop = JSON.parse(localStorage.getItem('vride_drop'));
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!pickup || !drop) {
+                window.location.href = 'home.html';
+                return;
+            }
+
+            // Initialize Map
+            map = initMap('selection-map', {
+                zoomControl: false,
+                attributionControl: false
+            });
+
+            // Show Route
+            try {
+                const routeData = await getRoute(pickup, drop);
+                routeLine = L.polyline(routeData.coordinates, {
+                    color: '#4a9eff',
+                    weight: 5,
+                    opacity: 0.8,
+                    lineJoin: 'round'
+                }).addTo(map);
+
+                // Add markers
+                L.marker([pickup.lat, pickup.lng]).addTo(map);
+                L.marker([drop.lat, drop.lng]).addTo(map);
+
+                // Fit bounds
+                map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+            } catch (err) {
+                console.error('Route error:', err);
+            }
+
+            // Load and Sort Drivers
+            setTimeout(() => {
+                const profile = JSON.parse(localStorage.getItem('vride_profile') || '{}');
+                const passengerGender = profile.gender || '';
+
+                const drivers = getAvailableDrivers(drop, passengerGender);
+                const sortedDrivers = sortDrivers(drivers, passengerGender);
+                renderDrivers(sortedDrivers, passengerGender);
+            }, 1500); // Simulate network delay
+        });
+
+        function renderDrivers(drivers, passengerGender) {
+            const list = document.getElementById('drivers-list');
+            list.innerHTML = '';
+
+            // Find best candidates for male/female (Comparatively Lowest Fare with Rating >= 4.7)
+            const highRatedDrivers = drivers.filter(d => d.rating >= 4.7);
+
+            let bestFemale = null;
+            let bestMale = null;
+
+            highRatedDrivers.forEach(d => {
+                if (d.gender === 'female') {
+                    if (!bestFemale || d.price < bestFemale.price) bestFemale = d;
+                    // Tie-breaker: Higher rating if price is equal
+                    else if (d.price === bestFemale.price && d.rating > bestFemale.rating) bestFemale = d;
+                } else if (d.gender === 'male') {
+                    if (!bestMale || d.price < bestMale.price) bestMale = d;
+                    else if (d.price === bestMale.price && d.rating > bestMale.rating) bestMale = d;
+                }
+            });
+
+            drivers.forEach((driver, index) => {
+                const driverElement = document.createElement('div');
+                driverElement.className = 'driver-item';
+
+                const isTopFemaleChoice = bestFemale && driver.id === bestFemale.id;
+                const isTopMaleChoice = bestMale && driver.id === bestMale.id;
+
+                if (index === 0) driverElement.classList.add('best-match');
+                if (isTopFemaleChoice || isTopMaleChoice) driverElement.classList.add('safety-match');
+
+                // Collect badges
+                let badgesHtml = '';
+                if (isTopFemaleChoice) {
+                    badgesHtml += '<span class="safety-badge"><i class="fa-solid fa-shield-heart"></i> Safety Choice</span>';
+                    badgesHtml += '<span class="recommended-badge"><i class="fa-solid fa-thumbs-up"></i> Recommended</span>';
+                } else if (isTopMaleChoice) {
+                    badgesHtml += '<span class="cheap-badge"><i class="fa-solid fa-tag"></i> Cheap</span>';
+                    badgesHtml += '<span class="recommended-badge"><i class="fa-solid fa-thumbs-up"></i> Recommended</span>';
+                } else if (index === 0) {
+                    badgesHtml += '<span class="recommended-badge"><i class="fa-solid fa-star"></i> Recommended</span>';
+                }
+
+                driverElement.innerHTML = `
+                    <div class="driver-info">
+                        <div class="vehicle-icon-bg">
+                            <i class="fa-solid fa-${driver.type === 'bike' ? 'motorcycle' : driver.type === 'auto' ? 'taxi' : 'car'}"></i>
+                        </div>
+                        <div class="driver-details">
+                            <div class="driver-name-row">
+                                <span class="driver-name">${driver.name}</span>
+                                <span class="driver-rating">
+                                    <i class="fa-solid fa-star"></i> ${driver.rating}
+                                </span>
+                            </div>
+                            <div class="badges-container" style="display: flex; gap: 5px; margin-top: 4px; flex-wrap: wrap;">
+                                ${badgesHtml}
+                                ${driver.occupancy > 0
+                        ? `<span class="occupancy-badge" style="background: rgba(255, 159, 10, 0.2); color: #ff9f0a; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; border: 1px solid rgba(255, 159, 10, 0.3);"><i class="fa-solid fa-users"></i> ${driver.occupancy} Passenger${driver.occupancy > 1 ? 's' : ''}</span>`
+                        : `<span class="occupancy-badge" style="background: rgba(48, 209, 88, 0.2); color: #30d158; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; border: 1px solid rgba(48, 209, 88, 0.3);"><i class="fa-solid fa-check"></i> Empty</span>`
+                    }
+                            </div>
+                            <span class="vehicle-name" style="margin-top: 4px; display: inline-block;">${driver.vehicle}</span>
+                            <div class="driver-meta">
+                                <span><i class="fa-solid fa-clock"></i> ${driver.eta} away</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="price-action">
+                        <span class="price">₹${driver.price}</span>
+                        <button class="book-btn" onclick="selectDriver('${driver.id}')">Select</button>
+                    </div>
+                `;
+                list.appendChild(driverElement);
+            });
+        }
+
+        window.selectDriver = (driverId) => {
+            const drivers = getAvailableDrivers();
+            const selected = drivers.find(d => d.id === driverId);
+            localStorage.setItem('vride_active_driver', JSON.stringify(selected));
+            window.location.href = 'tracking.html';
+        };
+    </script>
+</body>
+
+</html>

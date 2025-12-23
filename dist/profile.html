@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Complete Profile - VRIDE</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" crossorigin href="/assets/style-DBeyQhMw.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="header">
+            <a href="index.html" class="back-button"><i class="fa-solid fa-arrow-left"></i></a>
+            <h2 class="header-title">Complete Profile</h2>
+        </header>
+
+        <main class="main-content">
+            <form id="profile-form" class="profile-form">
+                <!-- User Photo -->
+                <div class="profile-photo-container">
+                    <img id="user-photo" src="" alt="User Photo" class="profile-photo-small">
+                </div>
+
+                <!-- Personal Details -->
+                <div class="form-group">
+                    <label>First Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="first-name" placeholder="First Name" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Last Name</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="last-name" placeholder="Last Name" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group half">
+                        <label>Age</label>
+                        <div class="input-wrapper">
+                            <input type="number" id="age" placeholder="Age" min="18" max="100" required>
+                        </div>
+                    </div>
+                    <div class="form-group half">
+                        <label>Gender</label>
+                        <div class="input-wrapper">
+                            <select id="gender" required>
+                                <option value="" disabled selected>Select</option>
+                                <option value="male">Male</option>
+                                <option value="female">Female</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vehicle Ownership -->
+                <div class="form-group">
+                    <label>Do you own a vehicle?</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="owns-vehicle" value="yes" onchange="toggleVehicleSection(true)">
+                            <span>Yes</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="owns-vehicle" value="no" checked
+                                onchange="toggleVehicleSection(false)">
+                            <span>No</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Conditional Vehicle Details -->
+                <div id="vehicle-section" class="vehicle-section hidden">
+                    <div class="form-group">
+                        <label>Vehicle Type</label>
+                        <div class="input-wrapper">
+                            <select id="vehicle-type">
+                                <option value="" disabled selected>Select Type</option>
+                                <option value="bike">Bike / Scooter</option>
+                                <option value="auto">Auto Rikshaw</option>
+                                <option value="car-sedan">Car (Sedan)</option>
+                                <option value="car-suv">Car (SUV)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Vehicle Number</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="vehicle-number" placeholder="KA-01-AB-1234"
+                                style="text-transform: uppercase;">
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 20px;">Save & Continue</button>
+            </form>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('vride_user'));
+            const profile = JSON.parse(localStorage.getItem('vride_profile') || '{}');
+
+            if (user) {
+                // Set Photo
+                document.getElementById('user-photo').src = user.photoURL || 'https://via.placeholder.com/100';
+
+                // Autofill existing profile data if available
+                if (profile.firstName) document.getElementById('first-name').value = profile.firstName;
+                if (profile.lastName) document.getElementById('last-name').value = profile.lastName;
+                if (profile.age) document.getElementById('age').value = profile.age;
+                if (profile.gender) document.getElementById('gender').value = profile.gender;
+
+                if (profile.ownsVehicle) {
+                    document.querySelector('input[name="owns-vehicle"][value="yes"]').checked = true;
+                    toggleVehicleSection(true);
+                }
+
+                if (profile.vehicleType) document.getElementById('vehicle-type').value = profile.vehicleType;
+                if (profile.vehicleNumber) document.getElementById('vehicle-number').value = profile.vehicleNumber;
+
+                // Split and Autofill Name from Google user if profile is empty
+                if (!profile.firstName && user.name && !user.name.startsWith('+')) {
+                    const names = user.name.split(' ');
+                    document.getElementById('first-name').value = names[0] || '';
+                    document.getElementById('last-name').value = names.slice(1).join(' ') || '';
+                }
+            } else {
+                alert('No user details found. Please login again.');
+                window.location.href = 'login.html';
+            }
+        });
+
+        function toggleVehicleSection(show) {
+            const section = document.getElementById('vehicle-section');
+            if (show) {
+                section.classList.remove('hidden');
+                document.getElementById('vehicle-type').required = true;
+                document.getElementById('vehicle-number').required = true;
+            } else {
+                section.classList.add('hidden');
+                document.getElementById('vehicle-type').required = false;
+                document.getElementById('vehicle-number').required = false;
+            }
+        }
+
+        document.getElementById('profile-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            // Collect form data
+            const profileData = {
+                firstName: document.getElementById('first-name').value,
+                lastName: document.getElementById('last-name').value,
+                age: document.getElementById('age').value,
+                gender: document.getElementById('gender').value,
+                ownsVehicle: document.querySelector('input[name="owns-vehicle"]:checked').value === 'yes',
+                vehicleType: document.getElementById('vehicle-type').value || null,
+                vehicleNumber: document.getElementById('vehicle-number').value || null
+            };
+
+            // Save to localStorage
+            localStorage.setItem('vride_profile', JSON.stringify(profileData));
+
+            // Redirect to home page
+            window.location.href = 'home.html';
+        });
+    </script>
+</body>
+
+</html>

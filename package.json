@@ -1,0 +1,31 @@
+{
+  "name": "vride-letsgetmoving",
+  "version": "1.0.0",
+  "description": "VRIDE Login and OTP Flow",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "firebase deploy",
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@googlemaps/js-api-loader": "^2.0.2",
+    "express": "^5.2.1",
+    "firebase": "^10.7.1",
+    "leaflet": "^1.9.4",
+    "leaflet-routing-machine": "^3.2.12"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  },
+  "keywords": [
+    "vride",
+    "firebase",
+    "otp"
+  ],
+  "author": "",
+  "license": "ISC",
+  "main": "firebase-auth.js",
+  "type": "commonjs"
+}

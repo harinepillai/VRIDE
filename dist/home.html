@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRIDE - Home</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* New Requests Card Styles */
+        .requests-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .request-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .request-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-blue);
+        }
+
+        .request-main {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .passenger-avatar {
+            width: 45px;
+            height: 45px;
+            background: #2a2a2a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        .request-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .passenger-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .p-rating {
+            font-size: 0.8rem;
+            color: #ffb800;
+            font-weight: 600;
+        }
+
+        .route-info {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .request-meta {
+            text-align: right;
+        }
+
+        .fare-price {
+            font-weight: 800;
+            font-size: 1rem;
+            color: #fff;
+        }
+
+        .dist-info {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .accept-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+    </style>
+  <script type="module" crossorigin src="/assets/home-CPSp-80t.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/assets/map-utils-Cm6qByqs.js">
+  <link rel="stylesheet" crossorigin href="/assets/map-utils-CIGW-MKW.css">
+  <link rel="stylesheet" crossorigin href="/assets/style-DBeyQhMw.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header with Menu -->
+        <header class="home-header">
+            <div class="menu-icon" onclick="toggleMenu()">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+        </header>
+
+        <!-- Sidebar Menu -->
+        <div id="sidebar-menu" class="sidebar-menu">
+            <div class="menu-header">
+                <div class="menu-close" onclick="toggleMenu()">
+                    <i class="fa-solid fa-times"></i>
+                </div>
+            </div>
+            <nav class="menu-nav">
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>History of Trips</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-message"></i>
+                    <span>Feedback</span>
+                </a>
+                <a href="#" class="menu-item" id="passenger-rating-menu">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span>Passenger Rating: <span id="passenger-rating-val">5.0</span></span>
+                </a>
+                <a href="#" class="menu-item" id="driver-rating-menu" style="display: none;">
+                    <i class="fa-solid fa-star"></i>
+                    <span>Driver Rating: <span id="driver-rating-val">5.0</span></span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>Wallet</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Help</span>
+                </a>
+                <a href="#" class="menu-item" id="switch-role-menu" onclick="handleSwitchRole(event)">
+                    <i class="fa-solid fa-exchange"></i>
+                    <span id="switch-role-text">Switch to Driver</span>
+                </a>
+                <a href="#" class="menu-item logout" onclick="handleLogout()">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Overlay -->
+        <div id="menu-overlay" class="menu-overlay" onclick="toggleMenu()"></div>
+
+        <!-- Main Content -->
+        <main class="home-main">
+            <!-- Greeting -->
+            <div class="greeting-section">
+                <h1 class="greeting-text" id="greeting-text">Good morning,<br><span id="user-name">Alex</span></h1>
+            </div>
+
+            <!-- PWA Install Prompt -->
+            <div class="install-prompt" id="install-prompt" style="display: none;">
+                <div class="install-content">
+                    <i class="fa-solid fa-download"></i>
+                    <div class="install-text">
+                        <span class="install-title">Install VRIDE App</span>
+                        <span class="install-subtitle">Get quick access from your home screen</span>
+                    </div>
+                </div>
+                <button class="install-btn" id="install-btn">Install</button>
+                <button class="install-close" id="install-close">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Passenger Actions (Visible only for passengers) -->
+            <div id="passenger-view" class="home-actions" style="display: none;">
+                <div class="location-card" id="pickup-card" onclick="openLocationPicker('pickup')">
+                    <div class="location-icon">
+                        <i class="fa-solid fa-circle-dot"></i>
+                    </div>
+                    <div class="location-content">
+                        <span class="location-label">Pickup Location</span>
+                        <span class="location-address" id="pickup-address">Tap to select location</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow-icon"></i>
+                </div>
+
+                <div class="location-card" id="drop-card" onclick="openLocationPicker('drop')">
+                    <div class="location-icon">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <div class="location-content">
+                        <span class="location-label">Drop Location</span>
+                        <span class="location-address" id="drop-address">Tap to select location</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow-icon"></i>
+                </div>
+
+                <button class="home-btn btn-primary-home" id="make-trip-btn" onclick="handleMakeTrip()" disabled>
+                    <i class="fa-solid fa-car"></i>
+                    <span>Make a trip</span>
+                </button>
+            </div>
+
+            <!-- Driver Actions (Visible only for drivers) -->
+            <div id="driver-view" class="home-actions" style="display: none;">
+                <div class="online-status-card">
+                    <div class="status-info">
+                        <div class="status-indicator" id="status-indicator"></div>
+                        <span class="status-text" id="status-text">You are Offline</span>
+                    </div>
+                    <p class="status-subtext">Click the button below to start receiving ride requests</p>
+                </div>
+
+                <button class="home-btn btn-primary-home" id="go-online-btn" onclick="handleGoOnline()">
+                    <i class="fa-solid fa-power-off"></i>
+                    <span>Go Online</span>
+                </button>
+
+                <!-- Nearby Passenger Requests -->
+                <div id="nearby-requests-section" style="display: none; margin-top: 30px; width: 100%;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h2 style="font-size: 1.2rem; font-weight: 800;">Nearby Requests</h2>
+                        <div id="seat-counter"
+                            style="background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                            Seats: <span id="seats-val">--</span>
+                        </div>
+                    </div>
+
+                    <div id="requests-list" class="requests-list">
+                        <!-- Requests will be injected here -->
+                        <div class="loading-requests"
+                            style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Finding passengers...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Preference Modal (Female Drivers) -->
+            <div id="safety-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <i class="fa-solid fa-shield-heart safety-icon"></i>
+                        <h3>Safety Preference</h3>
+                    </div>
+                    <p>Would you like to accept only female passengers for this session?</p>
+                    <div class="modal-actions">
+                        <button class="modal-btn btn-outline" onclick="setSafetyPreference(false)">All
+                            Passengers</button>
+                        <button class="modal-btn btn-primary" onclick="setSafetyPreference(true)">Female Only</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tagline -->
+            <div class="tagline">
+                <p>Move anywhere at an instant, let's get moving</p>
+            </div>
+        </main>
+    </div>
+
+</body>
+
+</html>

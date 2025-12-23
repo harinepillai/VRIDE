@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VRIDE - Home</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* New Requests Card Styles */
+        .requests-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .request-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+
+        .request-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--accent-blue);
+        }
+
+        .request-main {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .passenger-avatar {
+            width: 45px;
+            height: 45px;
+            background: #2a2a2a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+
+        .request-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .passenger-name {
+            font-weight: 700;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .p-rating {
+            font-size: 0.8rem;
+            color: #ffb800;
+            font-weight: 600;
+        }
+
+        .route-info {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
+        }
+
+        .request-meta {
+            text-align: right;
+        }
+
+        .fare-price {
+            font-weight: 800;
+            font-size: 1rem;
+            color: #fff;
+        }
+
+        .dist-info {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .accept-btn {
+            background: #fff;
+            color: #000;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-top: 8px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Header with Menu -->
+        <header class="home-header">
+            <div class="menu-icon" onclick="toggleMenu()">
+                <i class="fa-solid fa-bars"></i>
+            </div>
+        </header>
+
+        <!-- Sidebar Menu -->
+        <div id="sidebar-menu" class="sidebar-menu">
+            <div class="menu-header">
+                <div class="menu-close" onclick="toggleMenu()">
+                    <i class="fa-solid fa-times"></i>
+                </div>
+            </div>
+            <nav class="menu-nav">
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <span>History of Trips</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-message"></i>
+                    <span>Feedback</span>
+                </a>
+                <a href="#" class="menu-item" id="passenger-rating-menu">
+                    <i class="fa-solid fa-user-check"></i>
+                    <span>Passenger Rating: <span id="passenger-rating-val">5.0</span></span>
+                </a>
+                <a href="#" class="menu-item" id="driver-rating-menu" style="display: none;">
+                    <i class="fa-solid fa-star"></i>
+                    <span>Driver Rating: <span id="driver-rating-val">5.0</span></span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>Wallet</span>
+                </a>
+                <a href="#" class="menu-item">
+                    <i class="fa-solid fa-circle-question"></i>
+                    <span>Help</span>
+                </a>
+                <a href="#" class="menu-item" id="switch-role-menu" onclick="handleSwitchRole(event)">
+                    <i class="fa-solid fa-exchange"></i>
+                    <span id="switch-role-text">Switch to Driver</span>
+                </a>
+                <a href="#" class="menu-item logout" onclick="handleLogout()">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Logout</span>
+                </a>
+            </nav>
+        </div>
+
+        <!-- Overlay -->
+        <div id="menu-overlay" class="menu-overlay" onclick="toggleMenu()"></div>
+
+        <!-- Main Content -->
+        <main class="home-main">
+            <!-- Greeting -->
+            <div class="greeting-section">
+                <h1 class="greeting-text" id="greeting-text">Good morning,<br><span id="user-name">Alex</span></h1>
+            </div>
+
+            <!-- PWA Install Prompt -->
+            <div class="install-prompt" id="install-prompt" style="display: none;">
+                <div class="install-content">
+                    <i class="fa-solid fa-download"></i>
+                    <div class="install-text">
+                        <span class="install-title">Install VRIDE App</span>
+                        <span class="install-subtitle">Get quick access from your home screen</span>
+                    </div>
+                </div>
+                <button class="install-btn" id="install-btn">Install</button>
+                <button class="install-close" id="install-close">
+                    <i class="fa-solid fa-times"></i>
+                </button>
+            </div>
+
+            <!-- Passenger Actions (Visible only for passengers) -->
+            <div id="passenger-view" class="home-actions" style="display: none;">
+                <div class="location-card" id="pickup-card" onclick="openLocationPicker('pickup')">
+                    <div class="location-icon">
+                        <i class="fa-solid fa-circle-dot"></i>
+                    </div>
+                    <div class="location-content">
+                        <span class="location-label">Pickup Location</span>
+                        <span class="location-address" id="pickup-address">Tap to select location</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow-icon"></i>
+                </div>
+
+                <div class="location-card" id="drop-card" onclick="openLocationPicker('drop')">
+                    <div class="location-icon">
+                        <i class="fa-solid fa-location-dot"></i>
+                    </div>
+                    <div class="location-content">
+                        <span class="location-label">Drop Location</span>
+                        <span class="location-address" id="drop-address">Tap to select location</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-right arrow-icon"></i>
+                </div>
+
+                <button class="home-btn btn-primary-home" id="make-trip-btn" onclick="handleMakeTrip()" disabled>
+                    <i class="fa-solid fa-car"></i>
+                    <span>Make a trip</span>
+                </button>
+            </div>
+
+            <!-- Driver Actions (Visible only for drivers) -->
+            <div id="driver-view" class="home-actions" style="display: none;">
+                <div class="online-status-card">
+                    <div class="status-info">
+                        <div class="status-indicator" id="status-indicator"></div>
+                        <span class="status-text" id="status-text">You are Offline</span>
+                    </div>
+                    <p class="status-subtext">Click the button below to start receiving ride requests</p>
+                </div>
+
+                <button class="home-btn btn-primary-home" id="go-online-btn" onclick="handleGoOnline()">
+                    <i class="fa-solid fa-power-off"></i>
+                    <span>Go Online</span>
+                </button>
+
+                <!-- Nearby Passenger Requests -->
+                <div id="nearby-requests-section" style="display: none; margin-top: 30px; width: 100%;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h2 style="font-size: 1.2rem; font-weight: 800;">Nearby Requests</h2>
+                        <div id="seat-counter"
+                            style="background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600;">
+                            Seats: <span id="seats-val">--</span>
+                        </div>
+                    </div>
+
+                    <div id="requests-list" class="requests-list">
+                        <!-- Requests will be injected here -->
+                        <div class="loading-requests"
+                            style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                            <i class="fa-solid fa-circle-notch fa-spin"></i> Finding passengers...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Safety Preference Modal (Female Drivers) -->
+            <div id="safety-modal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <i class="fa-solid fa-shield-heart safety-icon"></i>
+                        <h3>Safety Preference</h3>
+                    </div>
+                    <p>Would you like to accept only female passengers for this session?</p>
+                    <div class="modal-actions">
+                        <button class="modal-btn btn-outline" onclick="setSafetyPreference(false)">All
+                            Passengers</button>
+                        <button class="modal-btn btn-primary" onclick="setSafetyPreference(true)">Female Only</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tagline -->
+            <div class="tagline">
+                <p>Move anywhere at an instant, let's get moving</p>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { getNearbyPassengerRequests } from './map-utils.js';
+        // Get greeting based on time
+        function getGreeting() {
+            const hour = new Date().getHours();
+            if (hour < 12) {
+                return 'Good morning,';
+            } else if (hour < 17) {
+                return 'Good afternoon,';
+            } else {
+                return 'Good evening,';
+            }
+        }
+
+        // Load user data and set greeting
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = JSON.parse(localStorage.getItem('vride_user'));
+            const profile = JSON.parse(localStorage.getItem('vride_profile'));
+            const role = localStorage.getItem('vride_role') || 'passenger';
+
+            if (!user || !profile) {
+                // Redirect to login if no user/profile found
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // Set greeting
+            const greetingText = getGreeting();
+            document.getElementById('greeting-text').innerHTML =
+                `${greetingText}<br><span id="user-name">${profile.firstName || 'User'}</span>`;
+
+            // Mutual Ratings Initialization
+            if (!profile.ratings) {
+                profile.ratings = { passenger: 4.9, driver: 5.0 };
+                localStorage.setItem('vride_profile', JSON.stringify(profile));
+            }
+            document.getElementById('passenger-rating-val').textContent = profile.ratings.passenger.toFixed(1);
+
+            // Show/Hide Driver Rating in Menu
+            if (profile.ownsVehicle) {
+                document.getElementById('driver-rating-menu').style.display = 'flex';
+                document.getElementById('driver-rating-val').textContent = profile.ratings.driver.toFixed(1);
+            }
+
+            // Role-based UI
+            if (role === 'driver' && profile.ownsVehicle) {
+                document.getElementById('driver-view').style.display = 'flex';
+                // Remove history/rating items if needed or adjust labels
+            } else {
+                document.getElementById('passenger-view').style.display = 'flex';
+            }
+
+            // Update switch role button text based on current role
+            updateSwitchRoleButton();
+
+            // Load saved locations for passengers
+            loadSavedLocations();
+        });
+
+        // Update switch role button visibility and text
+        function updateSwitchRoleButton() {
+            const profile = JSON.parse(localStorage.getItem('vride_profile'));
+            const role = localStorage.getItem('vride_role') || 'passenger';
+            const switchRoleBtn = document.getElementById('switch-role-menu');
+            const switchRoleText = document.getElementById('switch-role-text');
+
+            // Only show switch role button if user owns a vehicle
+            if (profile && profile.ownsVehicle) {
+                switchRoleBtn.style.display = 'flex';
+                if (role === 'driver') {
+                    switchRoleText.textContent = 'Switch to Passenger';
+                } else {
+                    switchRoleText.textContent = 'Switch to Driver';
+                }
+            } else {
+                switchRoleBtn.style.display = 'none';
+            }
+        }
+
+        // Handle role switching
+        function handleSwitchRole(event) {
+            console.log('handleSwitchRole called');
+            event.preventDefault();
+            const profile = JSON.parse(localStorage.getItem('vride_profile'));
+            const role = localStorage.getItem('vride_role') || 'passenger';
+            console.log('Current role:', role);
+            console.log('Profile:', profile);
+
+            // Check if user owns a vehicle
+            if (!profile || !profile.ownsVehicle) {
+                console.log('User does not own a vehicle');
+                alert('You need to own a vehicle to switch to Driver mode');
+                return;
+            }
+
+            // Switch role
+            const newRole = role === 'driver' ? 'passenger' : 'driver';
+            console.log('Switching to:', newRole);
+            localStorage.setItem('vride_role', newRole);
+
+            // Close menu
+            console.log('Closing menu and reloading...');
+            toggleMenu();
+
+            // Reload page to apply role changes
+            window.location.reload();
+        }
+
+        // Multi-Passenger Initial State
+        let currentCapacity = 1;
+        let occupiedSeats = 0;
+        let acceptedPassengers = [];
+
+        // Driver Online Logic
+        function handleGoOnline() {
+            const profile = JSON.parse(localStorage.getItem('vride_profile'));
+
+            // Determine Capacity
+            if (profile.vehicleType === 'auto') {
+                currentCapacity = 2;
+            } else if (profile.vehicleType === 'car-sedan' || profile.vehicleType === 'car-suv') {
+                currentCapacity = 3;
+            } else {
+                currentCapacity = 1; // Bike
+            }
+
+            // Reset state
+            occupiedSeats = 0;
+            acceptedPassengers = [];
+            updateSeatUI();
+
+            if (profile.gender === 'female') {
+                document.getElementById('safety-modal').classList.add('active');
+            } else {
+                toggleOnlineStatus(false);
+            }
+        }
+
+        function setSafetyPreference(femaleOnly) {
+            localStorage.setItem('vride_session_female_only', femaleOnly);
+            document.getElementById('safety-modal').classList.remove('active');
+            toggleOnlineStatus(femaleOnly);
+        }
+
+        function toggleOnlineStatus(femaleOnly) {
+            const btn = document.getElementById('go-online-btn');
+            const indicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            const isOnline = btn.classList.contains('online');
+
+            if (isOnline) {
+                // Go Offline
+                btn.classList.remove('online');
+                btn.innerHTML = '<i class="fa-solid fa-power-off"></i><span>Go Online</span>';
+                indicator.classList.remove('online');
+                statusText.textContent = 'You are Offline';
+                localStorage.removeItem('vride_session_female_only');
+
+                // Hide requests section
+                document.getElementById('nearby-requests-section').style.display = 'none';
+            } else {
+                // Go Online
+                btn.classList.add('online');
+                btn.innerHTML = '<i class="fa-solid fa-power-off"></i><span>Go Offline</span>';
+                indicator.classList.add('online');
+                statusText.textContent = femaleOnly ? 'Online (Female Only)' : 'You are Online';
+
+                // Show requests section and fetch
+                document.getElementById('nearby-requests-section').style.display = 'block';
+                fetchNearbyRequests();
+            }
+        }
+
+        // Fetch Nearby Passenger Requests
+        function fetchNearbyRequests() {
+            const list = document.getElementById('requests-list');
+            // Get current session preference
+            const femaleOnly = localStorage.getItem('vride_session_female_only') === 'true';
+
+            // Simulation delay
+            setTimeout(() => {
+                // Pass preference to simulation
+                const requests = getNearbyPassengerRequests(null, null, femaleOnly);
+                renderRequests(requests);
+            }, 1000);
+        }
+
+        // Expose functions to window for inline onclick handlers
+        window.handleGoOnline = handleGoOnline;
+        window.setSafetyPreference = setSafetyPreference;
+        window.toggleMenu = toggleMenu;
+        window.handleMakeTrip = handleMakeTrip;
+        window.handleLogout = handleLogout;
+        window.openLocationPicker = openLocationPicker;
+        window.acceptRequest = acceptRequest;
+        window.dropPassenger = dropPassenger;
+
+        function renderRequests(requests) {
+            const list = document.getElementById('requests-list');
+            list.innerHTML = '';
+
+            // Filter out already accepted passengers
+            const availableRequests = requests.filter(req => !acceptedPassengers.includes(req.id));
+
+            if (availableRequests.length === 0 && occupiedSeats < currentCapacity) {
+                list.innerHTML = '<div style="text-align:center; padding:20px; color:#888;">No more requests nearby.</div>';
+                return;
+            }
+
+            availableRequests.forEach(req => {
+                const isFull = occupiedSeats >= currentCapacity;
+                const card = document.createElement('div');
+                card.className = 'request-card';
+                card.style.opacity = isFull ? '0.5' : '1';
+                card.innerHTML = `
+                    <div class="request-main">
+                        <div class="passenger-avatar"><i class="fa-solid fa-user"></i></div>
+                        <div class="request-details">
+                            <div class="passenger-name">${req.name} <span class="p-rating">★ ${req.rating.toFixed(1)}</span></div>
+                            <div class="route-info">${req.pickup} → ${req.drop}</div>
+                        </div>
+                    </div>
+                    <div class="request-meta">
+                        <div class="fare-price">₹${req.price}</div>
+                        <div class="dist-info">${req.dist} km away</div>
+                        <button class="accept-btn" onclick="acceptRequest('${req.id}')" ${isFull ? 'disabled style="background:#444; color:#888; cursor:not-allowed;"' : ''}>
+                            ${isFull ? 'Full' : 'Accept'}
+                        </button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+
+            // Show accepted passengers section if any
+            if (occupiedSeats > 0) {
+                const divider = document.createElement('div');
+                divider.innerHTML = '<h3 style="margin: 20px 0 10px; font-size: 1rem;">Accepted Passengers</h3>';
+                list.appendChild(divider);
+
+                acceptedPassengers.forEach(pid => {
+                    const pReq = requests.find(r => r.id == pid) || { name: 'Passenger', id: pid };
+                    const pCard = document.createElement('div');
+                    pCard.className = 'request-card';
+                    pCard.style.border = '1px solid #4CAF50';
+                    pCard.innerHTML = `
+                        <div class="request-main">
+                            <div class="passenger-avatar" style="color: #4CAF50;"><i class="fa-solid fa-check"></i></div>
+                            <div class="request-details">
+                                <div class="passenger-name">${pReq.name}</div>
+                                <div class="route-info" style="color:#4CAF50;">Onboard</div>
+                            </div>
+                        </div>
+                        <div class="request-meta">
+                            <button class="accept-btn" style="background:rgba(255,59,48,0.2); color:#ff3b30; border:1px solid #ff3b30;" onclick="dropPassenger('${pReq.id}')">
+                                Drop
+                            </button>
+                        </div>
+                    `;
+                    list.appendChild(pCard);
+                });
+            }
+        }
+
+        function acceptRequest(id) {
+            if (occupiedSeats >= currentCapacity) {
+                alert('Vehicle is full!');
+                return;
+            }
+
+            occupiedSeats++;
+            acceptedPassengers.push(id);
+            updateSeatUI();
+
+            // Re-render requests to update UI state
+            fetchNearbyRequests();
+        }
+
+        function dropPassenger(id) {
+            occupiedSeats--;
+            acceptedPassengers = acceptedPassengers.filter(pid => pid !== id);
+            updateSeatUI();
+            fetchNearbyRequests();
+        }
+
+        function updateSeatUI() {
+            const seatsVal = document.getElementById('seats-val');
+            if (seatsVal) {
+                seatsVal.textContent = `${currentCapacity - occupiedSeats} / ${currentCapacity}`;
+
+                const indicator = document.getElementById('seat-counter');
+                if (occupiedSeats >= currentCapacity) {
+                    indicator.style.background = 'rgba(255, 59, 48, 0.2)';
+                    indicator.style.color = '#ff3b30';
+                } else {
+                    indicator.style.background = 'rgba(255, 255, 255, 0.1)';
+                    indicator.style.color = '#fff';
+                }
+            }
+        }
+
+        // Load saved locations from localStorage
+        function loadSavedLocations() {
+            const pickup = JSON.parse(localStorage.getItem('vride_pickup'));
+            const drop = JSON.parse(localStorage.getItem('vride_drop'));
+
+            if (pickup) {
+                document.getElementById('pickup-address').textContent = pickup.address;
+                document.getElementById('pickup-card').classList.add('selected');
+            }
+
+            if (drop) {
+                document.getElementById('drop-address').textContent = drop.address;
+                document.getElementById('drop-card').classList.add('selected');
+            }
+
+            // Enable/disable make trip button
+            updateMakeTripButton();
+        }
+
+        // Update make trip button state
+        function updateMakeTripButton() {
+            const pickup = localStorage.getItem('vride_pickup');
+            const drop = localStorage.getItem('vride_drop');
+            const makeTripBtn = document.getElementById('make-trip-btn');
+
+            if (pickup && drop) {
+                makeTripBtn.disabled = false;
+                makeTripBtn.classList.add('enabled');
+            } else {
+                makeTripBtn.disabled = true;
+                makeTripBtn.classList.remove('enabled');
+            }
+        }
+
+        // Open location picker
+        function openLocationPicker(type) {
+            window.location.href = `location-picker.html?type=${type}`;
+        }
+
+        // Toggle menu
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar-menu');
+            const overlay = document.getElementById('menu-overlay');
+
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+
+            // Prevent body scroll when menu is open
+            if (sidebar.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Handle make trip
+        function handleMakeTrip() {
+            const pickup = JSON.parse(localStorage.getItem('vride_pickup'));
+            const drop = JSON.parse(localStorage.getItem('vride_drop'));
+
+            if (!pickup || !drop) {
+                alert('Please select both pickup and drop locations');
+                return;
+            }
+
+            // Navigate to driver selection page
+            window.location.href = 'driver-selection.html';
+        }
+
+        // Handle logout
+        function handleLogout() {
+            if (confirm('Are you sure you want to logout?')) {
+                // Clear all user data from localStorage
+                localStorage.removeItem('vride_user');
+                localStorage.removeItem('vride_role');
+                localStorage.removeItem('vride_profile');
+                localStorage.removeItem('vride_pickup');
+                localStorage.removeItem('vride_drop');
+                localStorage.removeItem('vride_active_trip');
+
+                // Redirect to landing page
+                window.location.href = 'index.html';
+            }
+        }
+
+        // PWA Install Logic
+        let deferredPrompt;
+        const installPrompt = document.getElementById('install-prompt');
+        const installBtn = document.getElementById('install-btn');
+        const installClose = document.getElementById('install-close');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later.
+            deferredPrompt = e;
+            // Update UI to notify the user they can add to home screen
+            installPrompt.style.display = 'flex';
+        });
+
+        if (installBtn) {
+            installBtn.addEventListener('click', (e) => {
+                // hide our install banner
+                installPrompt.style.display = 'none';
+                // Show the prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the A2HS prompt');
+                    } else {
+                        console.log('User dismissed the A2HS prompt');
+                    }
+                    deferredPrompt = null;
+                });
+            });
+        }
+
+        if (installClose) {
+            installClose.addEventListener('click', () => {
+                installPrompt.style.display = 'none';
+            });
+        }
+
+        // Expose functions to global scope for onclick handlers
+        window.toggleMenu = toggleMenu;
+        window.handleSwitchRole = handleSwitchRole;
+        window.updateSwitchRoleButton = updateSwitchRoleButton;
+        window.handleLogout = handleLogout;
+        window.handleGoOnline = handleGoOnline;
+        window.setSafetyPreference = setSafetyPreference;
+        window.openLocationPicker = openLocationPicker;
+        window.handleMakeTrip = handleMakeTrip;
+        window.acceptRequest = acceptRequest;
+        window.dropPassenger = dropPassenger;
+
+    </script>
+</body>
+
+</html>

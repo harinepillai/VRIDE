@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enter OTP - VRIDE</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script type="module" crossorigin src="/assets/modulepreload-polyfill-B5Qt9EMX.js"></script>
+  <script type="module" crossorigin src="/assets/firebase-auth-CSqjQim-.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/style-DBeyQhMw.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="header">
+            <button class="back-button" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></button>
+        </header>
+
+        <main class="main-content">
+            <h1 class="headline">Enter code.</h1>
+            <p class="subheadline" id="otp-message">A code was sent to <span id="user-contact">...</span></p>
+
+            <div class="otp-container">
+                <input type="number" class="otp-input" maxlength="1" pattern="\d*">
+                <input type="number" class="otp-input" maxlength="1" pattern="\d*">
+                <input type="number" class="otp-input" maxlength="1" pattern="\d*">
+                <input type="number" class="otp-input" maxlength="1" pattern="\d*">
+                <input type="number" class="otp-input" maxlength="1" pattern="\d*">
+                <input type="number" class="otp-input" maxlength="1" pattern="\d*">
+            </div>
+
+            <button class="btn btn-primary" id="verify-btn">Verify</button>
+
+            <p class="resend-text">
+                Didn't receive code? <a href="#" id="resend-link">Resend again</a>
+            </p>
+        </main>
+    </div>
+    <div id="recaptcha-container"></div>
+</body>
+
+</html>

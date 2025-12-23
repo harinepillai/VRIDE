@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tracking Your Ride - VRIDE</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+
+<body class="tracking-body">
+    <div id="tracking-map" class="tracking-map"></div>
+
+    <!-- Status Header -->
+    <div class="tracking-status-header">
+        <div class="status-indicator">
+            <div class="pulse"></div>
+            <span id="status-text">Driver is arriving</span>
+        </div>
+        <div class="eta-bubble">
+            <span id="eta-value">3 min</span>
+            <span class="eta-label">ETA</span>
+        </div>
+    </div>
+
+    <!-- Driver Card Bottom Sheet -->
+    <div class="driver-card-sheet">
+        <div class="sheet-handle"></div>
+
+        <div class="active-driver-info">
+            <div class="driver-main">
+                <div class="avatar-container">
+                    <img id="driver-avatar" src="https://ui-avatars.com/api/?name=Driver&background=random"
+                        alt="Driver">
+                    <div class="rating-tag"><i class="fa-solid fa-star"></i> <span id="driver-rating">5.0</span></div>
+                </div>
+                <div class="driver-text">
+                    <h2 id="driver-name">Loading...</h2>
+                    <p id="vehicle-details" style="margin-bottom: 2px;">Vehicle details</p>
+                    <div id="occupancy-info"
+                        style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 8px; display: flex; align-items: center; gap: 5px;">
+                        <i class="fa-solid fa-users"></i> <span id="occupancy-text">Loading occupancy...</span>
+                    </div>
+                    <div class="plate-number">KA 01 MJ 1234</div>
+                </div>
+            </div>
+
+            <div class="action-buttons-tracking">
+                <button class="action-btn call"><i class="fa-solid fa-phone"></i></button>
+                <button class="action-btn message"><i class="fa-solid fa-message"></i></button>
+            </div>
+        </div>
+
+        <div class="trip-stats">
+            <div class="stat">
+                <span class="stat-label">Distance</span>
+                <span id="distance-value" class="stat-value">0.0 km</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat">
+                <span class="stat-label">Price</span>
+                <span id="price-value" class="stat-value">₹0</span>
+            </div>
+        </div>
+
+        <button class="cancel-trip-btn" onclick="cancelTrip()">Cancel Ride</button>
+    </div>
+
+    <script type="module">
+        import { initMap, getRoute, animateMarker, createVehicleIcon, formatDistance, calculateETA } from './map-utils.js';
+
+        let map, vehicleMarker, routeLine;
+        const pickup = JSON.parse(localStorage.getItem('vride_pickup'));
+        const drop = JSON.parse(localStorage.getItem('vride_drop'));
+        const driver = JSON.parse(localStorage.getItem('vride_active_driver'));
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!pickup || !drop || !driver) {
+                window.location.href = 'home.html';
+                return;
+            }
+
+            // Update UI
+            document.getElementById('driver-name').textContent = driver.name;
+            document.getElementById('driver-rating').textContent = driver.rating;
+            document.getElementById('vehicle-details').textContent = driver.vehicle;
+            document.getElementById('price-value').textContent = `₹${driver.price}`;
+            document.getElementById('eta-value').textContent = driver.eta;
+
+            // Updated Occupancy logic
+            const occupancyText = document.getElementById('occupancy-text');
+            if (driver.occupancy > 0) {
+                occupancyText.textContent = `${driver.occupancy} Passenger${driver.occupancy > 1 ? 's' : ''} on board`;
+                occupancyText.style.color = '#ff9f0a';
+            } else {
+                occupancyText.textContent = 'Solo Ride (Empty)';
+                occupancyText.style.color = '#30d158';
+            }
+
+            // Initialize Map
+            map = initMap('tracking-map', {
+                zoomControl: false,
+                attributionControl: false
+            });
+
+            // Get route data
+            try {
+                const routeData = await getRoute(pickup, drop);
+
+                routeLine = L.polyline(routeData.coordinates, {
+                    color: '#4a9eff',
+                    weight: 6,
+                    opacity: 0.6,
+                    lineCap: 'round'
+                }).addTo(map);
+
+                // Add Pickup/Drop markers
+                L.circleMarker([pickup.lat, pickup.lng], {
+                    radius: 8,
+                    fillColor: '#fff',
+                    fillOpacity: 1,
+                    color: '#4a9eff',
+                    weight: 3
+                }).addTo(map);
+
+                L.circleMarker([drop.lat, drop.lng], {
+                    radius: 8,
+                    fillColor: '#4a9eff',
+                    fillOpacity: 1,
+                    color: '#fff',
+                    weight: 3
+                }).addTo(map);
+
+                // Initialize Vehicle Marker
+                vehicleMarker = L.marker(routeData.coordinates[0], {
+                    icon: createVehicleIcon(driver.type)
+                }).addTo(map);
+
+                // Fit bounds
+                map.fitBounds(routeLine.getBounds(), { padding: [100, 100] });
+
+                // Start Animation
+                // We simulate the car moving along the route
+                animateMarker(vehicleMarker, routeData.coordinates, 20000, (progress, pos) => {
+                    // Update stats during animation
+                    const remainingDistance = routeData.distance * (1 - progress);
+                    document.getElementById('distance-value').textContent = formatDistance(remainingDistance);
+
+                    if (progress > 0.95) {
+                        document.getElementById('status-text').textContent = 'Arrived at destination';
+                        document.getElementById('eta-value').textContent = 'NOW';
+                    } else if (progress > 0.5) {
+                        document.getElementById('status-text').textContent = 'Dropping you off';
+                    }
+
+                    // Keep map centered on vehicle if needed, or just let it be
+                    // map.panTo([pos.lat, pos.lng]);
+                });
+
+            } catch (err) {
+                console.error('Tracking error:', err);
+            }
+        });
+
+        window.cancelTrip = () => {
+            if (confirm('Are you sure you want to cancel the ride?')) {
+                localStorage.removeItem('vride_active_driver');
+                window.location.href = 'home.html';
+            }
+        };
+    </script>
+</body>
+
+</html>

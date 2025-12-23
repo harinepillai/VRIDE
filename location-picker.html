@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Location - VRIDE</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="location-picker-body">
+    <!-- Header -->
+    <div class="picker-header">
+        <button class="back-btn" onclick="goBack()">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <h2 class="picker-title" id="picker-title">Select Pickup Location</h2>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-input" placeholder="Search for a location..." autocomplete="off">
+            <button class="clear-search" id="clear-search" onclick="clearSearch()" style="display: none;">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        <div class="search-results" id="search-results" style="display: none;"></div>
+    </div>
+
+    <!-- Current Location Button -->
+    <button class="current-location-btn" onclick="useCurrentLocation()">
+        <i class="fa-solid fa-location-crosshairs"></i>
+        <span>Use Current Location</span>
+    </button>
+
+    <!-- Map Container -->
+    <div id="map" class="map-container"></div>
+
+    <!-- Selected Address Display -->
+    <div class="selected-address-card">
+        <div class="address-icon">
+            <i class="fa-solid fa-location-dot"></i>
+        </div>
+        <div class="address-info">
+            <span class="address-label">Selected Location</span>
+            <span class="address-text" id="selected-address">Drag the marker to select a location</span>
+        </div>
+    </div>
+
+    <!-- Confirm Button -->
+    <button class="confirm-btn" id="confirm-btn" onclick="confirmLocation()" disabled>
+        <span>Confirm Location</span>
+        <i class="fa-solid fa-check"></i>
+    </button>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading map...</p>
+    </div>
+
+    <script type="module">
+        import { initMap, getCurrentLocation, searchAddress, reverseGeocode } from './map-utils.js';
+        import L from 'leaflet';
+
+        let map;
+        let marker;
+        let selectedLocation = null;
+        let searchTimeout;
+        const locationType = new URLSearchParams(window.location.search).get('type') || 'pickup';
+
+        // Update title based on location type
+        document.getElementById('picker-title').textContent =
+            locationType === 'pickup' ? 'Select Pickup Location' : 'Select Drop Location';
+
+        // Initialize map
+        async function initializeMap() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.style.display = 'flex';
+
+            try {
+                // Try to get current location
+                let center;
+                try {
+                    const currentPos = await getCurrentLocation();
+                    center = [currentPos.lat, currentPos.lng];
+                } catch (error) {
+                    console.log('Could not get current location, using default');
+                    center = [12.9716, 77.5946]; // Bangalore default
+                }
+
+                // Initialize map
+                map = initMap('map', { center, zoom: 15 });
+
+                // Add draggable marker
+                marker = L.marker(center, { draggable: true }).addTo(map);
+
+                // Handle marker drag
+                marker.on('dragend', async function (e) {
+                    const position = e.target.getLatLng();
+                    await updateSelectedLocation(position.lat, position.lng);
+                });
+
+                // Handle map click
+                map.on('click', async function (e) {
+                    marker.setLatLng(e.latlng);
+                    await updateSelectedLocation(e.latlng.lat, e.latlng.lng);
+                });
+
+                // Get initial address
+                await updateSelectedLocation(center[0], center[1]);
+
+                loadingOverlay.style.display = 'none';
+            } catch (error) {
+                console.error('Map initialization error:', error);
+                loadingOverlay.innerHTML = '<p>Error loading map. Please refresh the page.</p>';
+            }
+        }
+
+        // Update selected location
+        async function updateSelectedLocation(lat, lng) {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.innerHTML = '<div class="spinner"></div><p>Getting address...</p>';
+
+            try {
+                const result = await reverseGeocode(lat, lng);
+                selectedLocation = {
+                    address: result.address,
+                    coordinates: [lng, lat],
+                    lat,
+                    lng,
+                    placeId: result.placeId
+                };
+
+                document.getElementById('selected-address').textContent = result.address;
+                document.getElementById('confirm-btn').disabled = false;
+            } catch (error) {
+                console.error('Error getting address:', error);
+                document.getElementById('selected-address').textContent = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        }
+
+        // Search functionality
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        const clearSearchBtn = document.getElementById('clear-search');
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+
+            // Show/hide clear button
+            clearSearchBtn.style.display = query ? 'block' : 'none';
+
+            // Clear previous timeout
+            clearTimeout(searchTimeout);
+
+            if (query.length < 3) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            // Debounce search
+            searchTimeout = setTimeout(async () => {
+                const results = await searchAddress(query);
+                displaySearchResults(results);
+            }, 500);
+        });
+
+        function displaySearchResults(results) {
+            if (!results || results.length === 0) {
+                searchResults.style.display = 'none';
+                return;
+            }
+
+            searchResults.innerHTML = results.map(result => `
+                <div class="search-result-item" onclick="selectSearchResult(${result.lat}, ${result.lng}, '${result.address.replace(/'/g, "\\'")}')">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>${result.address}</span>
+                </div>
+            `).join('');
+
+            searchResults.style.display = 'block';
+        }
+
+        window.selectSearchResult = async function (lat, lng, address) {
+            marker.setLatLng([lat, lng]);
+            map.setView([lat, lng], 16);
+            await updateSelectedLocation(lat, lng);
+            searchResults.style.display = 'none';
+            searchInput.value = '';
+            clearSearchBtn.style.display = 'none';
+        };
+
+        window.clearSearch = function () {
+            searchInput.value = '';
+            clearSearchBtn.style.display = 'none';
+            searchResults.style.display = 'none';
+        };
+
+        // Use current location
+        window.useCurrentLocation = async function () {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.style.display = 'flex';
+            loadingOverlay.innerHTML = '<div class="spinner"></div><p>Getting your location...</p>';
+
+            try {
+                const position = await getCurrentLocation();
+                marker.setLatLng([position.lat, position.lng]);
+                map.setView([position.lat, position.lng], 16);
+                await updateSelectedLocation(position.lat, position.lng);
+            } catch (error) {
+                alert('Could not get your current location. Please enable location services.');
+                loadingOverlay.style.display = 'none';
+            }
+        };
+
+        // Confirm location
+        window.confirmLocation = function () {
+            if (!selectedLocation) return;
+
+            // Save to localStorage
+            const storageKey = locationType === 'pickup' ? 'vride_pickup' : 'vride_drop';
+            localStorage.setItem(storageKey, JSON.stringify(selectedLocation));
+
+            // Return to home page
+            window.location.href = 'home.html';
+        };
+
+        // Go back
+        window.goBack = function () {
+            window.location.href = 'home.html';
+        };
+
+        // Initialize on load
+        initializeMap();
+    </script>
+</body>
+
+</html>

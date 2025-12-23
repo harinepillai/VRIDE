@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Location - VRIDE</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script type="module" crossorigin src="/assets/locationPicker-B0g-MGDI.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/assets/map-utils-Cm6qByqs.js">
+  <link rel="stylesheet" crossorigin href="/assets/map-utils-CIGW-MKW.css">
+  <link rel="stylesheet" crossorigin href="/assets/style-DBeyQhMw.css">
+</head>
+
+<body class="location-picker-body">
+    <!-- Header -->
+    <div class="picker-header">
+        <button class="back-btn" onclick="goBack()">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+        <h2 class="picker-title" id="picker-title">Select Pickup Location</h2>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="search-input" placeholder="Search for a location..." autocomplete="off">
+            <button class="clear-search" id="clear-search" onclick="clearSearch()" style="display: none;">
+                <i class="fa-solid fa-times"></i>
+            </button>
+        </div>
+        <div class="search-results" id="search-results" style="display: none;"></div>
+    </div>
+
+    <!-- Current Location Button -->
+    <button class="current-location-btn" onclick="useCurrentLocation()">
+        <i class="fa-solid fa-location-crosshairs"></i>
+        <span>Use Current Location</span>
+    </button>
+
+    <!-- Map Container -->
+    <div id="map" class="map-container"></div>
+
+    <!-- Selected Address Display -->
+    <div class="selected-address-card">
+        <div class="address-icon">
+            <i class="fa-solid fa-location-dot"></i>
+        </div>
+        <div class="address-info">
+            <span class="address-label">Selected Location</span>
+            <span class="address-text" id="selected-address">Drag the marker to select a location</span>
+        </div>
+    </div>
+
+    <!-- Confirm Button -->
+    <button class="confirm-btn" id="confirm-btn" onclick="confirmLocation()" disabled>
+        <span>Confirm Location</span>
+        <i class="fa-solid fa-check"></i>
+    </button>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="spinner"></div>
+        <p>Loading map...</p>
+    </div>
+
+</body>
+
+</html>

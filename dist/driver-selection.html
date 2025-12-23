@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Your Driver - VRIDE</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script type="module" crossorigin src="/assets/driverSelection-hDLR_9tQ.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/modulepreload-polyfill-B5Qt9EMX.js">
+  <link rel="modulepreload" crossorigin href="/assets/map-utils-Cm6qByqs.js">
+  <link rel="stylesheet" crossorigin href="/assets/map-utils-CIGW-MKW.css">
+  <link rel="stylesheet" crossorigin href="/assets/style-DBeyQhMw.css">
+</head>
+
+<body class="selection-body">
+    <div id="selection-map" class="selection-map"></div>
+
+    <div class="selection-header">
+        <a href="home.html" class="back-btn-selection"><i class="fa-solid fa-arrow-left"></i></a>
+        <div class="selection-title-group">
+            <h1>Match Found</h1>
+            <p>Picking the best drivers going your way</p>
+        </div>
+    </div>
+
+    <!-- Drivers Bottom Sheet -->
+    <div class="drivers-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2>Available Drivers</h2>
+            <div class="filter-badge">Best Match <i class="fa-solid fa-star"></i></div>
+        </div>
+
+        <div id="drivers-list" class="drivers-list">
+            <!-- Drivers will be injected here -->
+            <div class="loading-drivers">
+                <div class="spinner"></div>
+                <span>Finding best matches...</span>
+            </div>
+        </div>
+    </div>
+
+</body>
+
+</html>
