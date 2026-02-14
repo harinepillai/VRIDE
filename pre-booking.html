@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pre-booking - VRIDE</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="tracking-body">
+    <div class="app-container">
+        <header class="header">
+            <button class="back-button" onclick="history.back()"><i class="fa-solid fa-arrow-left"></i></button>
+            <h2 class="header-title">Ride Summary</h2>
+        </header>
+
+        <main class="main-content">
+            <div class="summary-card"
+                style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin-bottom: 20px;">
+                <div class="location-item" style="display: flex; gap: 15px; margin-bottom: 20px;">
+                    <i class="fa-solid fa-circle-dot" style="color: #4a9eff; margin-top: 5px;"></i>
+                    <div>
+                        <p style="font-size: 0.7rem; color: var(--text-secondary);">PICKUP</p>
+                        <p id="pickup-address" style="font-size: 0.95rem; font-weight: 600;">Loading...</p>
+                    </div>
+                </div>
+                <div class="location-item" style="display: flex; gap: 15px;">
+                    <i class="fa-solid fa-location-dot" style="color: #e74c3c; margin-top: 5px;"></i>
+                    <div>
+                        <p style="font-size: 0.7rem; color: var(--text-secondary);">DROP</p>
+                        <p id="drop-address" style="font-size: 0.95rem; font-weight: 600;">Loading...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="entity-preview"
+                style="display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; margin-bottom: 20px;">
+                <img id="entity-avatar" src="" style="width: 50px; height: 50px; border-radius: 50%;">
+                <div style="flex: 1;">
+                    <h3 id="entity-name" style="font-size: 1.1rem;">Loading...</h3>
+                    <p id="entity-meta" style="font-size: 0.8rem; color: var(--text-secondary);">Loading details...</p>
+                </div>
+                <div style="text-align: right;">
+                    <p style="font-size: 1.2rem; font-weight: 800; color: var(--vride-gold);">₹<span id="price">0</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="safety-info"
+                style="font-size: 0.8rem; color: var(--text-secondary); background: rgba(74, 158, 255, 0.1); padding: 12px; border-radius: 12px; border: 1px solid rgba(74, 158, 255, 0.2);">
+                <i class="fa-solid fa-shield-halved" style="color: #4a9eff; margin-right: 5px;"></i>
+                Your ride is protected by VRIDE Safety Shield.
+            </div>
+
+            <button onclick="window.location.href='booking.html'" class="btn btn-primary"
+                style="margin-top: auto; margin-bottom: 30px;">
+                Confirm & Proceed to Booking
+            </button>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const pickup = JSON.parse(localStorage.getItem('vride_pickup'));
+            const drop = JSON.parse(localStorage.getItem('vride_drop'));
+            const entity = JSON.parse(localStorage.getItem('vride_active_entity'));
+
+            if (!pickup || !drop || !entity) {
+                window.location.href = 'home.html';
+                return;
+            }
+
+            document.getElementById('pickup-address').textContent = pickup.address;
+            document.getElementById('drop-address').textContent = drop.address;
+            document.getElementById('entity-name').textContent = entity.name;
+            document.getElementById('entity-meta').textContent = `${entity.rating} \u2605 \u2022 ${entity.vehicle || 'Passenger'}`;
+            document.getElementById('price').textContent = entity.price;
+            document.getElementById('entity-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(entity.name)}&background=random`;
+        });
+    </script>
+</body>
+
+</html>
