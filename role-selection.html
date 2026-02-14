@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Role - VRIDE</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body class="landing-body">
+    <div class="landing-container">
+        <h1 class="app-title">VRIDE</h1>
+        <p class="role-selection-title">How would you like to continue?</p>
+
+        <div class="action-buttons">
+            <button id="pilot-btn" onclick="selectRole('driver')" class="btn btn-landing" style="display: none;">
+                Continue as Pilot <i class="fa-solid fa-arrow-right"></i>
+            </button>
+            <button onclick="selectRole('passenger')" class="btn btn-landing btn-outline">
+                Continue as Passenger <i class="fa-solid fa-arrow-right"></i>
+            </button>
+
+            <div id="pilot-placeholder" style="margin-top: 10px; font-size: 0.8rem; color: var(--text-secondary);">
+                <p>Register as a Pilot to share your rides.</p>
+                <button onclick="window.location.href='profile.html'" class="btn btn-landing btn-outline"
+                    style="margin-top: 10px; border-color: var(--vride-gold); color: var(--vride-gold);">
+                    Register as Pilot
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { getUserProfile } from './firebase-auth.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = JSON.parse(localStorage.getItem('vride_user'));
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Always try to fetch latest profile to check verification status
+            let profile = {};
+            try {
+                profile = await getUserProfile(user.uid) || {};
+                localStorage.setItem('vride_profile', JSON.stringify(profile));
+            } catch (e) {
+                console.error("Error fetching profile:", e);
+                profile = JSON.parse(localStorage.getItem('vride_profile') || '{}');
+            }
+
+            const pilotBtn = document.getElementById('pilot-btn');
+            const pilotPlaceholder = document.getElementById('pilot-placeholder');
+
+            // Strictly show Pilot option only if user is a verified pilot
+            if (profile.isVerifiedPilot) {
+                pilotBtn.style.display = 'flex';
+                pilotPlaceholder.style.display = 'none';
+            } else {
+                pilotBtn.style.display = 'none';
+                pilotPlaceholder.style.display = 'block';
+            }
+        });
+
+        window.selectRole = function (role) {
+            localStorage.setItem('vride_role', role);
+
+            // If they select driver but somehow aren't verified, failsafe
+            if (role === 'driver') {
+                const profile = JSON.parse(localStorage.getItem('vride_profile') || '{}');
+                if (!profile.isVerifiedPilot) {
+                    alert("Verification Required: Please complete your pilot profile first.");
+                    window.location.href = 'profile.html';
+                    return;
+                }
+                window.location.href = 'home.html';
+            } else {
+                window.location.href = 'home.html';
+            }
+        };
+    </script>
+</body>
+
+</html>
