@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Your Ride - VRIDE</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+
+<body class="tracking-body">
+    <div id="confirmation-map" class="tracking-map"></div>
+
+    <!-- Cancel Button (Top Right, below map/header area) -->
+    <button class="cancel-ride-top" onclick="cancelSelection()">
+        <i class="fa-solid fa-times"></i>
+    </button>
+
+    <!-- Bottom Sheet -->
+    <div class="driver-card-sheet confirmation-sheet">
+        <div class="sheet-handle"></div>
+
+        <div class="active-driver-info">
+            <div class="driver-main">
+                <div class="avatar-container">
+                    <img id="entity-avatar" src="https://ui-avatars.com/api/?name=User&background=random" alt="User">
+                    <div class="rating-tag"><i class="fa-solid fa-star"></i> <span id="entity-rating">5.0</span></div>
+                </div>
+                <div class="driver-text">
+                    <h2 id="entity-name">Loading...</h2>
+                    <p id="entity-subtext" style="margin-bottom: 2px;">Vehicle details</p>
+                    <div id="eta-info" style="font-size: 0.75rem; color: var(--accent-blue); font-weight: 600;">
+                        <i class="fa-solid fa-clock"></i> Arriving in <span id="eta-val">3 min</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-buttons-tracking">
+                <button class="action-btn call" onclick="alert('Calling...')"><i class="fa-solid fa-phone"></i></button>
+                <button class="action-btn message" onclick="alert('Opening Chat...')"><i
+                        class="fa-solid fa-message"></i></button>
+            </div>
+        </div>
+
+        <div class="confirmation-footer">
+            <!-- Payment Selector (Bottom Left) -->
+            <div class="payment-selector" id="payment-selector">
+                <button class="payment-trigger" onclick="togglePaymentDropdown()">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span id="selected-payment">Cash</span>
+                    <i class="fa-solid fa-chevron-up"></i>
+                </button>
+                <div class="payment-dropdown" id="payment-dropdown">
+                    <div class="payment-option" onclick="selectPayment('UPI', 'fa-mobile-screen')">
+                        <i class="fa-solid fa-mobile-screen"></i> <span>UPI</span>
+                    </div>
+                    <div class="payment-option" onclick="selectPayment('Cash', 'fa-money-bill-1')">
+                        <i class="fa-solid fa-money-bill-1"></i> <span>Cash</span>
+                    </div>
+                    <div class="payment-option" onclick="selectPayment('V-Wallet', 'fa-wallet')">
+                        <i class="fa-solid fa-wallet"></i> <span>V-Wallet</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Confirm Button (Center/Right) -->
+            <button class="confirm-ride-btn" onclick="confirmRide()">
+                Confirm Ride
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initMap, getRoute, createVehicleIcon } from './map-utils.js';
+
+        let map, marker, routeLine;
+        const role = localStorage.getItem('vride_role');
+        const entity = JSON.parse(localStorage.getItem('vride_active_entity')); // We will store either driver or passenger here
+        const pickup = JSON.parse(localStorage.getItem('vride_pickup'));
+        const drop = JSON.parse(localStorage.getItem('vride_drop'));
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!entity || !pickup || !drop) {
+                window.location.href = 'home.html';
+                return;
+            }
+
+            // Update UI
+            document.getElementById('entity-name').textContent = entity.name;
+            document.getElementById('entity-rating').textContent = entity.rating;
+            document.getElementById('entity-subtext').textContent = entity.vehicle || (role === 'driver' ? 'Passenger' : 'Vehicle');
+            document.getElementById('eta-val').textContent = entity.eta || '5 min';
+            document.getElementById('entity-avatar').src = `https://ui-avatars.com/api/?name=${encodeURIComponent(entity.name)}&background=random`;
+
+            // Initialize Map
+            map = initMap('confirmation-map', { zoomControl: false });
+
+            // For Demo: Show a marker at pickup and a marker moving towards it or just static
+            const pickupCoords = [pickup.lat, pickup.lng];
+            L.circleMarker(pickupCoords, { radius: 8, fillColor: '#fff', color: '#4a9eff', weight: 3 }).addTo(map);
+
+            // Entity Marker (Pilot or Passenger position)
+            // Simulating entity is 1km away
+            const entityPos = [pickup.lat + 0.01, pickup.lng + 0.01];
+            marker = L.marker(entityPos, {
+                icon: createVehicleIcon(entity.type || 'car')
+            }).addTo(map);
+
+            map.setView(pickupCoords, 14);
+        });
+
+        window.togglePaymentDropdown = () => {
+            document.getElementById('payment-dropdown').classList.toggle('active');
+        };
+
+        window.selectPayment = (name, icon) => {
+            document.getElementById('selected-payment').textContent = name;
+            const triggerIcon = document.querySelector('.payment-trigger i:first-child');
+            triggerIcon.className = `fa-solid ${icon}`;
+            document.getElementById('payment-dropdown').classList.remove('active');
+        };
+
+        window.confirmRide = () => {
+            // Save as active trip
+            localStorage.setItem('vride_active_driver', JSON.stringify(entity));
+            window.location.href = 'tracking.html';
+        };
+
+        window.cancelSelection = () => {
+            localStorage.removeItem('vride_active_entity');
+            window.location.href = 'home.html';
+        };
+    </script>
+</body>
+
+</html>
