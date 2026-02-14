@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Available Matches - VRIDE</title>
+    <link rel="icon" type="image/png" href="/icon-512.png">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+
+<body class="selection-body">
+    <div id="selection-map" class="selection-map"></div>
+
+    <div class="selection-header">
+        <a href="home.html" class="back-btn-selection"><i class="fa-solid fa-arrow-left"></i></a>
+        <div class="selection-title-group">
+            <h1 id="match-title">Loading...</h1>
+            <p id="match-subtitle">Finding the best matches for you</p>
+        </div>
+    </div>
+
+    <!-- Matches Bottom Sheet -->
+    <div class="drivers-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h2 id="sheet-title">Available Pilots</h2>
+            <div class="filter-badge">Best Match <i class="fa-solid fa-star"></i></div>
+        </div>
+
+        <div id="matches-list" class="drivers-list">
+            <div class="loading-drivers">
+                <div class="spinner"></div>
+                <span>Finding best matches...</span>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initMap, getAvailableDrivers, sortDrivers, getRoute, createVehicleIcon } from './map-utils.js';
+
+        let map, routeLine;
+        const pickup = JSON.parse(localStorage.getItem('vride_pickup'));
+        const drop = JSON.parse(localStorage.getItem('vride_drop'));
+        const role = localStorage.getItem('vride_role') || 'passenger';
+
+        document.getElementById('match-title').textContent = role === 'driver' ? 'Passenger Requests' : 'Pilots Found';
+        document.getElementById('sheet-title').textContent = role === 'driver' ? 'Available Passengers' : 'Available Pilots';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!pickup || !drop) {
+                window.location.href = 'home.html';
+                return;
+            }
+
+            // Initialize Map
+            map = initMap('selection-map', {
+                zoomControl: false,
+                attributionControl: false
+            });
+
+            // Show Route
+            try {
+                const routeData = await getRoute(pickup, drop);
+                routeLine = L.polyline(routeData.coordinates, {
+                    color: '#4a9eff',
+                    weight: 5,
+                    opacity: 0.8,
+                    lineJoin: 'round'
+                }).addTo(map);
+
+                L.marker([pickup.lat, pickup.lng]).addTo(map);
+                L.marker([drop.lat, drop.lng]).addTo(map);
+                map.fitBounds(routeLine.getBounds(), { padding: [50, 50] });
+            } catch (err) {
+                console.error('Route error:', err);
+            }
+
+            // Load matches
+            setTimeout(() => {
+                const profile = JSON.parse(localStorage.getItem('vride_profile') || '{}');
+                const userGender = profile.gender || '';
+
+                // For simulation, we use getAvailableDrivers but it could be passengers
+                const matches = getAvailableDrivers(drop, userGender);
+                const sortedMatches = sortDrivers(matches, userGender);
+                renderMatches(sortedMatches);
+            }, 1000);
+        });
+
+        function renderMatches(matches) {
+            const list = document.getElementById('matches-list');
+            list.innerHTML = '';
+
+            matches.forEach((match, index) => {
+                const matchElement = document.createElement('div');
+                matchElement.className = 'driver-item';
+                if (index === 0) matchElement.classList.add('best-match');
+
+                matchElement.innerHTML = `
+                    <div class="driver-info">
+                        <div class="vehicle-icon-bg">
+                            <i class="fa-solid fa-${role === 'driver' ? 'user' : (match.type === 'bike' ? 'motorcycle' : 'car')}"></i>
+                        </div>
+                        <div class="driver-details">
+                            <div class="driver-name-row">
+                                <span class="driver-name">${match.name}</span>
+                                <span class="driver-rating">
+                                    <i class="fa-solid fa-star"></i> ${match.rating}
+                                </span>
+                            </div>
+                            <span class="vehicle-name">${role === 'driver' ? 'Needs a ride' : match.vehicle}</span>
+                            <div class="driver-meta">
+                                <span><i class="fa-solid fa-clock"></i> ${match.eta} away</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="price-action">
+                        <span class="price">₹${match.price}</span>
+                        <button class="book-btn" onclick="selectMatch('${match.id}')">Select</button>
+                    </div>
+                `;
+                list.appendChild(matchElement);
+            });
+        }
+
+        window.selectMatch = (matchId) => {
+            const matches = getAvailableDrivers(drop);
+            const selected = matches.find(m => m.id === matchId);
+            localStorage.setItem('vride_active_entity', JSON.stringify({
+                ...selected,
+                role: role === 'driver' ? 'passenger' : 'pilot'
+            }));
+            window.location.href = 'pre-booking.html';
+        };
+    </script>
+</body>
+
+</html>
